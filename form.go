@@ -7,6 +7,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+
+	"github.com/valentinzamarin/password-storage/utils"
 )
 
 func CreateForm(db *sql.DB) fyne.CanvasObject {
@@ -55,7 +57,7 @@ func CreateForm(db *sql.DB) fyne.CanvasObject {
 			return
 		}
 
-		err := SavePasswordToDB(db, urlEntry.Text, loginEntry.Text, passwordEntry.Text)
+		err := utils.SavePasswordToDB(db, urlEntry.Text, loginEntry.Text, passwordEntry.Text)
 		if err != nil {
 			errorLabel.SetText(fmt.Sprintf("Error saving to database: %v", err))
 			errorLabel.Show()
