@@ -15,14 +15,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("db conn error: %v", err)
 	}
-	defer db.Close()
 
-	migrationsPath := "./migrations"
-	if err := sqlite.RunMigrations(db, migrationsPath); err != nil {
-		log.Fatalf("could not run migrations: %v", err)
-	}
-
-	passwordRepo := sqlite.NewBasePasswordRepository(db)
+	passwordRepo := sqlite.NewGormPasswordRepository(db)
 	passwordService := services.NewPasswordService(passwordRepo)
 
 	uiApp := ui.NewApp(passwordService)
