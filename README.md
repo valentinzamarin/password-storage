@@ -8,3 +8,4 @@ Stack:
 - GORM
 - Fyne.io
 
+```go build -ldflags="-H=windowsgui" -o password-storage.exe .\cmd\app\main.go```
