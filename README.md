@@ -5,5 +5,6 @@ This is a small application written in Golang that I created for personal use an
 Stack: 
 - Golang
 - SQLite
+- GORM
 - Fyne.io
 

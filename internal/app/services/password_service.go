@@ -34,7 +34,3 @@ func (ps *PasswordService) GetPasswords() ([]*entities.Password, error) {
 
 	return passwords, nil
 }
-
-func (ps *PasswordService) DeletePassword(id int) {
-	ps.passwordRepo.DeletePasswordById(id)
-}

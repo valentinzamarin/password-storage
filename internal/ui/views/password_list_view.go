@@ -95,9 +95,9 @@ func (v *PasswordListView) createList() {
 			loginLabel.SetText(password.Login)
 			passwordLabel.SetText(password.Password)
 
-			deleteButton.OnTapped = func() {
-				v.passwordService.DeletePassword(password.ID)
-			}
+			// deleteButton.OnTapped = func() {
+			// 	v.passwordService.DeletePassword(password.ID)
+			// }
 
 			urlLabel.Refresh()
 			loginLabel.Refresh()
