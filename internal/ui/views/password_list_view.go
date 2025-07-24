@@ -1,8 +1,10 @@
 package views
 
 import (
+	"password-storage/internal/app/events"
 	"password-storage/internal/app/services"
 	"password-storage/internal/domain/entities"
+	domainevents "password-storage/internal/domain/events"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -39,18 +41,20 @@ type PasswordListView struct {
 	window          fyne.Window
 	list            *widget.List
 	passwords       []*entities.Password
+	eventBus        *events.EventBus
 }
 
-func NewPasswordListView(passwordService *services.PasswordService, window fyne.Window) *PasswordListView {
+func NewPasswordListView(passwordService *services.PasswordService, window fyne.Window, eventBus *events.EventBus) *PasswordListView {
 	view := &PasswordListView{
 		passwordService: passwordService,
 		window:          window,
 		passwords:       []*entities.Password{},
+		eventBus:        eventBus,
 	}
 
 	view.createList()
 	view.loadPasswords()
-
+	view.subscribeToEvents()
 	return view
 }
 
@@ -128,6 +132,19 @@ func (v *PasswordListView) Render() fyne.CanvasObject {
 	)
 }
 
-func (v *PasswordListView) RefreshList() {
-	v.loadPasswords()
+func (v *PasswordListView) subscribeToEvents() {
+	ch := v.eventBus.Subscribe(domainevents.PasswordTopic)
+
+	go func() {
+		for event := range ch {
+			fyne.Do(func() {
+				switch event.(type) {
+				case domainevents.AddedPasswordEvent:
+					v.loadPasswords()
+				case domainevents.RemovedPasswordEvent:
+					v.loadPasswords()
+				}
+			})
+		}
+	}()
 }

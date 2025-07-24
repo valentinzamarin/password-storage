@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"password-storage/internal/app/events"
 	"password-storage/internal/app/services"
+
 	"password-storage/internal/infrastructure/sqlite"
 	"password-storage/internal/ui"
 )
@@ -16,10 +18,12 @@ func main() {
 		log.Fatalf("db conn error: %v", err)
 	}
 
-	passwordRepo := sqlite.NewGormPasswordRepository(db)
-	passwordService := services.NewPasswordService(passwordRepo)
+	eventBus := events.NewEventBus()
 
-	uiApp := ui.NewApp(passwordService)
+	passwordRepo := sqlite.NewGormPasswordRepository(db)
+	passwordService := services.NewPasswordService(passwordRepo, eventBus)
+
+	uiApp := ui.NewApp(passwordService, eventBus)
 
 	uiApp.Run()
 }

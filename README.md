@@ -7,5 +7,10 @@ Stack:
 - SQLite
 - GORM
 - Fyne.io
+- DDD
 
 ```go build -ldflags="-H=windowsgui" -o password-storage.exe .\cmd\app\main.go```
+
+---
+
+Added an Event Bus to avoid updating list in each component separately

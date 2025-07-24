@@ -1,16 +1,22 @@
 package services
 
 import (
+	"password-storage/internal/app/events"
 	"password-storage/internal/domain/entities"
+	domainevents "password-storage/internal/domain/events"
 	"password-storage/internal/domain/repositories"
 )
 
 type PasswordService struct {
 	passwordRepo repositories.PasswordRepo
+	eventBus     *events.EventBus
 }
 
-func NewPasswordService(passwordRepo repositories.PasswordRepo) *PasswordService {
-	return &PasswordService{passwordRepo: passwordRepo}
+func NewPasswordService(passwordRepo repositories.PasswordRepo, eventBus *events.EventBus) *PasswordService {
+	return &PasswordService{
+		passwordRepo: passwordRepo,
+		eventBus:     eventBus,
+	}
 }
 
 func (ps *PasswordService) AddNewPassword(url, login, password, description string) error {
@@ -23,7 +29,16 @@ func (ps *PasswordService) AddNewPassword(url, login, password, description stri
 		return err
 	}
 
-	return ps.passwordRepo.AddPassword(*newPassword)
+	ps.passwordRepo.AddPassword(*newPassword)
+
+	ps.eventBus.Publish(domainevents.PasswordTopic, domainevents.AddedPasswordEvent{
+		URL:         newPassword.URL,
+		Login:       newPassword.Login,
+		Password:    newPassword.Password,
+		Description: newPassword.Description,
+	})
+
+	return nil
 }
 
 func (ps *PasswordService) GetPasswords() ([]*entities.Password, error) {
@@ -35,6 +50,11 @@ func (ps *PasswordService) GetPasswords() ([]*entities.Password, error) {
 	return passwords, nil
 }
 
-func (ps *PasswordService) DeletePassword(id int) {
-	ps.passwordRepo.DeletePasswordById(uint(id))
+func (ps *PasswordService) DeletePassword(id uint) {
+
+	ps.passwordRepo.DeletePasswordById(id)
+
+	ps.eventBus.Publish(domainevents.PasswordTopic, domainevents.RemovedPasswordEvent{
+		ID: id,
+	})
 }
