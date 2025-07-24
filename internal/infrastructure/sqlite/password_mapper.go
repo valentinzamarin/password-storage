@@ -14,7 +14,7 @@ func toDBPassword(password entities.Password) *PasswordModel {
 
 func fromDBPassword(model *PasswordModel) *entities.Password {
 	return &entities.Password{
-		ID:          int(model.ID),
+		ID:          model.ID,
 		URL:         model.URL,
 		Login:       model.Login,
 		Password:    model.Password,

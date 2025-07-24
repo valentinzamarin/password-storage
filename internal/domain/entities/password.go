@@ -3,7 +3,7 @@ package entities
 import "errors"
 
 type Password struct {
-	ID          int
+	ID          uint
 	URL         string
 	Login       string
 	Password    string

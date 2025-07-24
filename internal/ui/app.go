@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"password-storage/internal/app/events"
 	"password-storage/internal/app/services"
+
 	"password-storage/internal/ui/views"
 
 	"fyne.io/fyne/v2"
@@ -13,9 +15,10 @@ type App struct {
 	fyneApp         fyne.App
 	window          fyne.Window
 	passwordService *services.PasswordService
+	eventBus        *events.EventBus
 }
 
-func NewApp(passwordService *services.PasswordService) *App {
+func NewApp(passwordService *services.PasswordService, eventBus *events.EventBus) *App {
 	a := app.New()
 	w := a.NewWindow("Password Storage")
 
@@ -23,6 +26,7 @@ func NewApp(passwordService *services.PasswordService) *App {
 		fyneApp:         a,
 		window:          w,
 		passwordService: passwordService,
+		eventBus:        eventBus,
 	}
 }
 
@@ -33,7 +37,7 @@ func (a *App) Run() {
 }
 
 func (a *App) makeMainView() fyne.CanvasObject {
-	passwordListView := views.NewPasswordListView(a.passwordService, a.window)
+	passwordListView := views.NewPasswordListView(a.passwordService, a.window, a.eventBus)
 	addPasswordView := views.NewAddPasswordView(a.passwordService, a.window)
 
 	tabs := container.NewAppTabs(
