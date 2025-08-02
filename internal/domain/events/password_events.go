@@ -12,3 +12,8 @@ type AddedPasswordEvent struct {
 type RemovedPasswordEvent struct {
 	ID uint
 }
+
+type UpdatePasswordEvent struct {
+	ID          uint
+	Description string
+}

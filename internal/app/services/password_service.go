@@ -58,3 +58,14 @@ func (ps *PasswordService) DeletePassword(id uint) {
 		ID: id,
 	})
 }
+
+func (ps *PasswordService) UpdatePassword(id uint, description string) error {
+	ps.passwordRepo.UpdatePassword(id, description)
+
+	ps.eventBus.Publish(domainevents.PasswordTopic, domainevents.UpdatePasswordEvent{
+		ID:          id,
+		Description: description,
+	})
+
+	return nil
+}
