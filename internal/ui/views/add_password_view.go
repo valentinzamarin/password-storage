@@ -12,20 +12,22 @@ import (
 )
 
 type AddPasswordView struct {
-	passwordService *services.PasswordService
-	window          fyne.Window
-	inputURL        *widget.Entry
-	inputLogin      *widget.Entry
-	inputPassword   *widget.Entry
+	passwordService  *services.PasswordService
+	window           fyne.Window
+	inputURL         *widget.Entry
+	inputLogin       *widget.Entry
+	inputPassword    *widget.Entry
+	inputDescription *widget.Entry
 }
 
 func NewAddPasswordView(passwordService *services.PasswordService, window fyne.Window) *AddPasswordView {
 	return &AddPasswordView{
-		passwordService: passwordService,
-		window:          window,
-		inputURL:        components.CreateInputField("URL"),
-		inputLogin:      components.CreateInputField("Login"),
-		inputPassword:   components.CreateInputField("Password"),
+		passwordService:  passwordService,
+		window:           window,
+		inputURL:         components.CreateInputField("URL"),
+		inputLogin:       components.CreateInputField("Login"),
+		inputPassword:    components.CreateInputField("Password"),
+		inputDescription: components.CreateInputField("Description"),
 	}
 }
 
@@ -36,6 +38,7 @@ func (v *AddPasswordView) Render() fyne.CanvasObject {
 		v.inputURL,
 		v.inputLogin,
 		v.inputPassword,
+		v.inputDescription,
 		submitButton,
 	)
 }
@@ -44,7 +47,7 @@ func (v *AddPasswordView) handleSubmit() {
 	url := v.inputURL.Text
 	login := v.inputLogin.Text
 	password := v.inputPassword.Text
-	description := ""
+	description := v.inputDescription.Text
 
 	newPassword, err := entities.NewPassword(url, login, password, description)
 	if err != nil {
@@ -58,7 +61,7 @@ func (v *AddPasswordView) handleSubmit() {
 		return
 	}
 
-	serviceErr := v.passwordService.AddNewPassword(url, login, password, "")
+	serviceErr := v.passwordService.AddNewPassword(url, login, password, description)
 	if serviceErr != nil {
 		dialog.ShowError(serviceErr, v.window)
 		return
@@ -72,4 +75,5 @@ func (v *AddPasswordView) clearForm() {
 	v.inputURL.SetText("")
 	v.inputLogin.SetText("")
 	v.inputPassword.SetText("")
+	v.inputDescription.SetText("")
 }

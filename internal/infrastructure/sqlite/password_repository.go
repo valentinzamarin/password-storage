@@ -47,3 +47,13 @@ func (p *GormPasswordRepository) DeletePasswordById(id uint) error {
 	}
 	return nil
 }
+
+func (p *GormPasswordRepository) UpdatePassword(id uint, description string) error {
+	result := p.db.Model(&PasswordModel{}).Where("id = ?", id).Update("description", description)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}

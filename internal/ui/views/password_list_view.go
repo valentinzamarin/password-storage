@@ -14,14 +14,12 @@ import (
 
 type TappableLabel struct {
 	widget.Label
-	onTapped func(string)
-	window   fyne.Window
+	window fyne.Window
 }
 
-func NewTappableLabel(text string, window fyne.Window, onTapped func(string)) *TappableLabel {
+func NewTappableLabel(text string, window fyne.Window) *TappableLabel {
 	l := &TappableLabel{
-		onTapped: onTapped,
-		window:   window,
+		window: window,
 	}
 	l.ExtendBaseWidget(l)
 	l.SetText(text)
@@ -29,17 +27,15 @@ func NewTappableLabel(text string, window fyne.Window, onTapped func(string)) *T
 }
 
 func (l *TappableLabel) Tapped(event *fyne.PointEvent) {
-	if l.onTapped != nil {
-		l.onTapped(l.Text)
-		l.window.Clipboard().SetContent(l.Text)
-		dialog.ShowInformation("", "Copied", l.window)
-	}
+
+	l.window.Clipboard().SetContent(l.Text)
+	dialog.ShowInformation("Copied", "to the clipboard", l.window)
 }
 
 type PasswordListView struct {
 	passwordService *services.PasswordService
 	window          fyne.Window
-	list            *widget.List
+	content         *fyne.Container
 	passwords       []*entities.Password
 	eventBus        *events.EventBus
 }
@@ -50,6 +46,7 @@ func NewPasswordListView(passwordService *services.PasswordService, window fyne.
 		window:          window,
 		passwords:       []*entities.Password{},
 		eventBus:        eventBus,
+		content:         container.NewVBox(),
 	}
 
 	view.createList()
@@ -59,56 +56,85 @@ func NewPasswordListView(passwordService *services.PasswordService, window fyne.
 }
 
 func (v *PasswordListView) createList() {
-	v.list = widget.NewList(
-		func() int {
-			return len(v.passwords)
-		},
 
-		func() fyne.CanvasObject {
-			urlLabel := NewTappableLabel("", v.window, nil)
-			loginLabel := NewTappableLabel("", v.window, nil)
-			passwordLabel := NewTappableLabel("", v.window, nil)
+	v.content = container.NewVBox()
 
-			deleteButton := widget.NewButton("Del", nil)
+	v.refreshContent()
+}
 
-			return container.NewHBox(
-				widget.NewLabel("URL:"),
-				urlLabel,
-				widget.NewLabel("Login:"),
-				loginLabel,
-				widget.NewLabel("Password:"),
-				passwordLabel,
-				deleteButton,
-			)
-		},
+func (v *PasswordListView) refreshContent() {
+	v.content.RemoveAll()
 
-		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			if id >= len(v.passwords) {
-				return
-			}
+	for _, password := range v.passwords {
+		item := v.createPasswordItem(password)
+		v.content.Add(item)
+	}
+}
 
-			password := v.passwords[id]
-			contentContainer := obj.(*fyne.Container)
+func (v *PasswordListView) createPasswordItem(password *entities.Password) fyne.CanvasObject {
 
-			urlLabel := contentContainer.Objects[1].(*TappableLabel)
-			loginLabel := contentContainer.Objects[3].(*TappableLabel)
-			passwordLabel := contentContainer.Objects[5].(*TappableLabel)
-			deleteButton := contentContainer.Objects[6].(*widget.Button)
+	urlLabel := NewTappableLabel(password.URL, v.window)
+	loginLabel := NewTappableLabel(password.Login, v.window)
+	passwordLabel := NewTappableLabel(password.Password, v.window)
 
-			urlLabel.SetText(password.URL)
-			loginLabel.SetText(password.Login)
-			passwordLabel.SetText(password.Password)
+	deleteButton := widget.NewButton("❌", func() {
+		v.passwordService.DeletePassword(password.ID)
+	})
 
-			deleteButton.OnTapped = func() {
-				v.passwordService.DeletePassword(password.ID)
-			}
+	descriptionEntry := widget.NewMultiLineEntry()
+	descriptionEntry.SetText(password.Description)
+	descriptionEntry.Wrapping = fyne.TextWrapWord
 
-			urlLabel.Refresh()
-			loginLabel.Refresh()
-			passwordLabel.Refresh()
-			deleteButton.Refresh()
-		},
+	saveButton := widget.NewButton("💾", func() {
+
+		password.Description = descriptionEntry.Text
+		err := v.passwordService.UpdatePassword(password.ID, password.Description)
+		if err != nil {
+			dialog.ShowError(err, v.window)
+		} else {
+			dialog.ShowInformation("Changed", "", v.window)
+		}
+	})
+
+	descriptionContainer := container.NewVBox(
+		widget.NewSeparator(),
+
+		descriptionEntry,
+		saveButton,
 	)
+	descriptionContainer.Hide()
+
+	var toggleButton *widget.Button
+	toggleButton = widget.NewButton("📝", func() {
+		if descriptionContainer.Visible() {
+			descriptionContainer.Hide()
+			toggleButton.SetText("📝")
+		} else {
+			descriptionContainer.Show()
+			toggleButton.SetText("🔼")
+		}
+	})
+
+	mainRowWithToggle := container.NewHBox(
+		widget.NewLabel("URL:"),
+		urlLabel,
+		widget.NewLabel("Login:"),
+		loginLabel,
+		widget.NewLabel("Password:"),
+		passwordLabel,
+		deleteButton,
+		toggleButton,
+	)
+
+	borderContainer := container.NewBorder(
+		mainRowWithToggle,    // top
+		descriptionContainer, // bottom
+		nil,                  // left
+		nil,                  // right
+		nil,                  // center
+	)
+
+	return borderContainer
 }
 
 func (v *PasswordListView) loadPasswords() {
@@ -119,19 +145,15 @@ func (v *PasswordListView) loadPasswords() {
 	}
 
 	v.passwords = passwords
-	v.list.Refresh()
+	v.refreshContent()
 }
 
 func (v *PasswordListView) Render() fyne.CanvasObject {
-	return container.NewBorder(
-		nil,
-		nil,
-		nil,
-		nil,
-		v.list,
-	)
+	/*
+		no need in "NewBorder"
+	*/
+	return v.content
 }
-
 func (v *PasswordListView) subscribeToEvents() {
 	ch := v.eventBus.Subscribe(domainevents.PasswordTopic)
 
