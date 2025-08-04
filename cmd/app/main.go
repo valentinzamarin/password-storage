@@ -18,6 +18,8 @@ func main() {
 		log.Fatalf("db conn error: %v", err)
 	}
 
+	sqlite.Migrate(db)
+
 	eventBus := events.NewEventBus()
 
 	passwordRepo := sqlite.NewGormPasswordRepository(db)
