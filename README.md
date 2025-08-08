@@ -9,7 +9,10 @@ Stack:
 - Fyne.io
 - DDD
 
-```go build -ldflags="-H=windowsgui" -o password-storage.exe .\cmd\app\main.go```
+
+```
+go build .\cmd\app\main.go  
+```
 
 ---
 

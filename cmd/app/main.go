@@ -2,16 +2,20 @@ package main
 
 import (
 	"log"
+	"password-storage/internal/app/encrypt"
 	"password-storage/internal/app/events"
 	"password-storage/internal/app/services"
 
 	"password-storage/internal/infrastructure/sqlite"
+	"password-storage/internal/infrastructure/sqlite/auth"
+	passwords "password-storage/internal/infrastructure/sqlite/password"
+
 	"password-storage/internal/ui"
 )
 
 func main() {
 
-	basePath := "./passwords.db"
+	basePath := "./db.db"
 
 	db, err := sqlite.NewConnection(basePath)
 	if err != nil {
@@ -20,12 +24,19 @@ func main() {
 
 	sqlite.Migrate(db)
 
+	/* additional functional */
 	eventBus := events.NewEventBus()
+	encrypt := encrypt.NewPasswordEncrypt()
 
-	passwordRepo := sqlite.NewGormPasswordRepository(db)
-	passwordService := services.NewPasswordService(passwordRepo, eventBus)
+	/* db repos */
+	authRepo := auth.NewAuthRepo(db)
+	passwordRepo := passwords.NewGormPasswordRepository(db, encrypt)
 
-	uiApp := ui.NewApp(passwordService, eventBus)
+	/* app services */
+	authService := services.NewAuthService(authRepo, encrypt)
+	passwordService := services.NewPasswordService(passwordRepo, eventBus, encrypt)
+
+	uiApp := ui.NewApp(passwordService, eventBus, encrypt, authService)
 
 	uiApp.Run()
 }
