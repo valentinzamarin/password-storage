@@ -4,11 +4,9 @@ This is a small application written in Golang that I created for personal use an
 
 Stack: 
 - Golang
-- SQLite
-- GORM
+- SQLite / GORM
 - Fyne.io
 - DDD
-
 
 ```
 go build .\cmd\app\main.go  
