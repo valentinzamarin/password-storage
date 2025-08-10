@@ -14,6 +14,3 @@ Stack:
 go build .\cmd\app\main.go  
 ```
 
----
-
-Added an Event Bus to avoid updating list in each component separately
