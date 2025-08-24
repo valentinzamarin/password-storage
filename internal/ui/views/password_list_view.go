@@ -152,7 +152,7 @@ func (v *PasswordListView) Render() fyne.CanvasObject {
 	/*
 		no need in "NewBorder"
 	*/
-	return v.content
+	return container.NewScroll(v.content)
 }
 func (v *PasswordListView) subscribeToEvents() {
 	ch := v.eventBus.Subscribe(domainevents.PasswordTopic)
