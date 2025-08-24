@@ -9,6 +9,6 @@ Stack:
 - DDD
 
 ```
-go build .\cmd\app\main.go  
+go build ./cmd/app/main.go
 ```
 
