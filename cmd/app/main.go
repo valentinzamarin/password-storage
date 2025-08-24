@@ -15,7 +15,7 @@ import (
 
 func main() {
 
-	basePath := "./db.db"
+	basePath := "./notebook.db"
 
 	db, err := sqlite.NewConnection(basePath)
 	if err != nil {
