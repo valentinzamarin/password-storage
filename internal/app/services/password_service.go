@@ -1,8 +1,8 @@
 package services
 
 import (
-	"password-storage/internal/app/encrypt"
 	"password-storage/internal/app/events"
+	"password-storage/internal/app/interfaces"
 	"password-storage/internal/domain/entities"
 	domainevents "password-storage/internal/domain/events"
 	"password-storage/internal/domain/repositories"
@@ -10,15 +10,13 @@ import (
 
 type PasswordService struct {
 	passwordRepo repositories.PasswordRepo
-	eventBus     *events.EventBus
-	encrypt      *encrypt.PasswordEncrypt
+	eventBus     interfaces.EventsBusInterface
 }
 
-func NewPasswordService(passwordRepo repositories.PasswordRepo, eventBus *events.EventBus, encrypt *encrypt.PasswordEncrypt) *PasswordService {
+func NewPasswordService(passwordRepo repositories.PasswordRepo, eventBus *events.EventBus) *PasswordService {
 	return &PasswordService{
 		passwordRepo: passwordRepo,
 		eventBus:     eventBus,
-		encrypt:      encrypt,
 	}
 }
 

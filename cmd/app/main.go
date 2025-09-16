@@ -34,7 +34,7 @@ func main() {
 
 	/* app services */
 	authService := services.NewAuthService(authRepo, encrypt)
-	passwordService := services.NewPasswordService(passwordRepo, eventBus, encrypt)
+	passwordService := services.NewPasswordService(passwordRepo, eventBus)
 
 	uiApp := ui.NewApp(passwordService, eventBus, encrypt, authService)
 
