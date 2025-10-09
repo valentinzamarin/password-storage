@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"log"
-	"password-storage/internal/app/encrypt"
 	"password-storage/internal/app/events"
 	"password-storage/internal/app/services"
 	"password-storage/internal/ui/views"
@@ -20,14 +19,12 @@ type App struct {
 	window          fyne.Window
 	passwordService *services.PasswordService
 	eventBus        *events.EventBus
-	encryptService  *encrypt.PasswordEncrypt
 	authService     *services.AuthService
 }
 
 func NewApp(
 	passwordService *services.PasswordService,
 	eventBus *events.EventBus,
-	encryptService *encrypt.PasswordEncrypt,
 	authService *services.AuthService,
 ) *App {
 	a := app.New()
@@ -38,7 +35,6 @@ func NewApp(
 		window:          w,
 		passwordService: passwordService,
 		eventBus:        eventBus,
-		encryptService:  encryptService,
 		authService:     authService,
 	}
 }
@@ -142,6 +138,7 @@ func (a *App) loadMainView() {
 }
 
 func (a *App) makeMainView() fyne.CanvasObject {
+	// searchbarView := views.NewSearchbarView( a.passwordService )
 	passwordListView := views.NewPasswordListView(a.passwordService, a.window, a.eventBus)
 	addPasswordView := views.NewAddPasswordView(a.passwordService, a.window)
 
@@ -150,5 +147,15 @@ func (a *App) makeMainView() fyne.CanvasObject {
 		container.NewTabItem("Add", addPasswordView.Render()),
 	)
 
-	return tabs
+	/* let it be NewBorder for now */
+
+	windowView := container.NewBorder(
+		nil,
+		nil,
+		nil,
+		nil,
+		tabs,
+	)
+
+	return windowView
 }

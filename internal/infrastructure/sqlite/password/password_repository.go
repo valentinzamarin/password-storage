@@ -58,20 +58,6 @@ func (p *GormPasswordRepository) GetAllPasswords() ([]*entities.Password, error)
 	return passwords, nil
 }
 
-// func (p *GormPasswordRepository) GetAllPasswords() ([]*entities.Password, error) {
-// 	var dbPasswords []PasswordModel
-// 	if err := p.db.Find(&dbPasswords).Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	passwords := make([]*entities.Password, len(dbPasswords))
-// 	for i, dbPassword := range dbPasswords {
-// 		passwords[i] = fromDBPassword(&dbPassword)
-// 	}
-
-// 	return passwords, nil
-// }
-
 func (p *GormPasswordRepository) DeletePasswordById(id uint) error {
 	result := p.db.Delete(&PasswordModel{}, id)
 
@@ -89,4 +75,10 @@ func (p *GormPasswordRepository) UpdatePassword(id uint, description string) err
 	}
 
 	return nil
+}
+
+func (p *GormPasswordRepository) SearchPasswordByURL(title string) []*entities.Password {
+	var passwords []*entities.Password
+	p.db.Where("url LIKE ?", "%"+title+"%").Find(&passwords)
+	return passwords
 }

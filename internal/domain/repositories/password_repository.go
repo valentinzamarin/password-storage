@@ -7,4 +7,5 @@ type PasswordRepo interface {
 	GetAllPasswords() ([]*entities.Password, error)
 	DeletePasswordById(id uint) error
 	UpdatePassword(id uint, description string) error
+	SearchPasswordByURL(title string) []*entities.Password
 }
