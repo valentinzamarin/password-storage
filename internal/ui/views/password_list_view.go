@@ -6,28 +6,40 @@ import (
 	"password-storage/internal/domain/entities"
 	domainevents "password-storage/internal/domain/events"
 	"password-storage/internal/ui/components"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/widget"
 )
 
 type PasswordListView struct {
-	passwordService *services.PasswordService
-	window          fyne.Window
-	content         *fyne.Container
-	passwords       []*entities.Password
-	eventBus        *events.EventBus
+	passwordService   *services.PasswordService
+	window            fyne.Window
+	content           *fyne.Container
+	eventBus          *events.EventBus
+	allPasswords      []*entities.Password
+	filteredPasswords []*entities.Password // ← это и есть текущий список
+	searchEntry       *widget.Entry
 }
 
 func NewPasswordListView(passwordService *services.PasswordService, window fyne.Window, eventBus *events.EventBus) *PasswordListView {
+
+	searchEntry := widget.NewEntry()
+	searchEntry.SetPlaceHolder("Search...")
+
 	view := &PasswordListView{
-		passwordService: passwordService,
-		window:          window,
-		passwords:       []*entities.Password{},
-		eventBus:        eventBus,
-		content:         container.NewVBox(),
+		passwordService:   passwordService,
+		window:            window,
+		eventBus:          eventBus,
+		content:           container.NewVBox(),
+		allPasswords:      []*entities.Password{},
+		filteredPasswords: []*entities.Password{},
+		searchEntry:       searchEntry,
 	}
+
+	searchEntry.OnChanged = view.onSearch
 
 	view.createList()
 	view.loadPasswords()
@@ -45,7 +57,7 @@ func (v *PasswordListView) createList() {
 func (v *PasswordListView) refreshContent() {
 	v.content.RemoveAll()
 
-	for _, password := range v.passwords {
+	for _, password := range v.filteredPasswords {
 		// passwordItem := components.PasswordItem(password)
 		// v.content.Add(passwordItem)
 
@@ -65,6 +77,7 @@ func (v *PasswordListView) refreshContent() {
 			},
 
 			// onUpdateDescription
+			// only description ??
 			func(newDesc string) {
 				err := v.passwordService.UpdatePassword(id, newDesc)
 				if err != nil {
@@ -85,16 +98,25 @@ func (v *PasswordListView) loadPasswords() {
 		return
 	}
 
-	v.passwords = passwords
-	v.refreshContent()
+	v.allPasswords = passwords
+	v.onSearch(v.searchEntry.Text)
 }
 
+// func (v *PasswordListView) Render() fyne.CanvasObject {
+// 	/*
+// 		no need in "NewBorder"
+// 	*/
+// 	return container.NewScroll(v.content)
+// }
+
 func (v *PasswordListView) Render() fyne.CanvasObject {
-	/*
-		no need in "NewBorder"
-	*/
-	return container.NewScroll(v.content)
+	return container.NewBorder(
+		container.NewPadded(v.searchEntry),
+		nil, nil, nil,
+		container.NewScroll(v.content),
+	)
 }
+
 func (v *PasswordListView) subscribeToEvents() {
 	ch := v.eventBus.Subscribe(domainevents.PasswordTopic)
 
@@ -110,4 +132,23 @@ func (v *PasswordListView) subscribeToEvents() {
 			})
 		}
 	}()
+}
+
+func (v *PasswordListView) onSearch(query string) {
+	query = strings.ToLower(strings.TrimSpace(query))
+
+	v.filteredPasswords = nil
+
+	if query == "" {
+		v.filteredPasswords = v.allPasswords
+	} else {
+		for _, pwd := range v.allPasswords {
+			if strings.Contains(strings.ToLower(pwd.URL), query) ||
+				strings.Contains(strings.ToLower(pwd.Login), query) {
+				v.filteredPasswords = append(v.filteredPasswords, pwd)
+			}
+		}
+	}
+
+	v.refreshContent()
 }
