@@ -138,7 +138,7 @@ func (a *App) loadMainView() {
 }
 
 func (a *App) makeMainView() fyne.CanvasObject {
-	searchbarView := views.NewSearchbarView()
+	// searchbarView := views.NewSearchbarView( a.passwordService )
 	passwordListView := views.NewPasswordListView(a.passwordService, a.window, a.eventBus)
 	addPasswordView := views.NewAddPasswordView(a.passwordService, a.window)
 
@@ -150,7 +150,7 @@ func (a *App) makeMainView() fyne.CanvasObject {
 	/* let it be NewBorder for now */
 
 	windowView := container.NewBorder(
-		searchbarView.Render(),
+		nil,
 		nil,
 		nil,
 		nil,

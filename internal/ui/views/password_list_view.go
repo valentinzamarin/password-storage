@@ -5,32 +5,12 @@ import (
 	"password-storage/internal/app/services"
 	"password-storage/internal/domain/entities"
 	domainevents "password-storage/internal/domain/events"
+	"password-storage/internal/ui/components"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/widget"
 )
-
-type TappableLabel struct {
-	widget.Label
-	window fyne.Window
-}
-
-func NewTappableLabel(text string, window fyne.Window) *TappableLabel {
-	l := &TappableLabel{
-		window: window,
-	}
-	l.ExtendBaseWidget(l)
-	l.SetText(text)
-	return l
-}
-
-func (l *TappableLabel) Tapped(event *fyne.PointEvent) {
-
-	l.window.Clipboard().SetContent(l.Text)
-	dialog.ShowInformation("Copied", "to the clipboard", l.window)
-}
 
 type PasswordListView struct {
 	passwordService *services.PasswordService
@@ -66,75 +46,36 @@ func (v *PasswordListView) refreshContent() {
 	v.content.RemoveAll()
 
 	for _, password := range v.passwords {
-		item := v.createPasswordItem(password)
-		v.content.Add(item)
+		// passwordItem := components.PasswordItem(password)
+		// v.content.Add(passwordItem)
+
+		id := password.ID
+		passwordItem := components.PasswordItem(
+			password,
+
+			// onDelete
+			func() {
+				dialog.ShowConfirm("Delete password", "Are you sure?", func(ok bool) {
+					if !ok {
+						return
+					}
+					v.passwordService.DeletePassword(id)
+
+				}, v.window)
+			},
+
+			// onUpdateDescription
+			func(newDesc string) {
+				err := v.passwordService.UpdatePassword(id, newDesc)
+				if err != nil {
+					dialog.ShowError(err, v.window)
+				} else {
+					dialog.ShowInformation("Saved", "Description updated", v.window)
+				}
+			},
+		)
+		v.content.Add(passwordItem)
 	}
-}
-
-func (v *PasswordListView) createPasswordItem(password *entities.Password) fyne.CanvasObject {
-
-	urlLabel := NewTappableLabel(password.URL, v.window)
-	loginLabel := NewTappableLabel(password.Login, v.window)
-	passwordLabel := NewTappableLabel(password.Password, v.window)
-
-	deleteButton := widget.NewButton("❌", func() {
-		v.passwordService.DeletePassword(password.ID)
-	})
-
-	descriptionEntry := widget.NewMultiLineEntry()
-	descriptionEntry.SetText(password.Description)
-	descriptionEntry.Wrapping = fyne.TextWrapWord
-
-	saveButton := widget.NewButton("💾", func() {
-
-		password.Description = descriptionEntry.Text
-		err := v.passwordService.UpdatePassword(password.ID, password.Description)
-		if err != nil {
-			dialog.ShowError(err, v.window)
-		} else {
-			dialog.ShowInformation("Changed", "", v.window)
-		}
-	})
-
-	descriptionContainer := container.NewVBox(
-		widget.NewSeparator(),
-
-		descriptionEntry,
-		saveButton,
-	)
-	descriptionContainer.Hide()
-
-	var toggleButton *widget.Button
-	toggleButton = widget.NewButton("📝", func() {
-		if descriptionContainer.Visible() {
-			descriptionContainer.Hide()
-			toggleButton.SetText("📝")
-		} else {
-			descriptionContainer.Show()
-			toggleButton.SetText("🔼")
-		}
-	})
-
-	mainRowWithToggle := container.NewHBox(
-		widget.NewLabel("URL:"),
-		urlLabel,
-		widget.NewLabel("Login:"),
-		loginLabel,
-		widget.NewLabel("Password:"),
-		passwordLabel,
-		deleteButton,
-		toggleButton,
-	)
-
-	borderContainer := container.NewBorder(
-		mainRowWithToggle,    // top
-		descriptionContainer, // bottom
-		nil,                  // left
-		nil,                  // right
-		nil,                  // center
-	)
-
-	return borderContainer
 }
 
 func (v *PasswordListView) loadPasswords() {

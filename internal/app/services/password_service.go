@@ -70,3 +70,11 @@ func (ps *PasswordService) UpdatePassword(id uint, description string) error {
 
 	return nil
 }
+
+/*
+no need in new service, working with db ?
+guess no
+*/
+func (ps *PasswordService) SearchPassword(url string) []*entities.Password {
+	return ps.passwordRepo.SearchPasswordByURL(url)
+}
