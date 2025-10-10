@@ -74,13 +74,11 @@ func (a *App) showLoginDialog() {
 
 		err := a.authService.Authenticate(passwordEntry.Text)
 		if err != nil {
-			log.Println("Authentication failed:", err)
-			dialog.ShowError(err, a.window)
+
 			a.showLoginDialog()
 			return
 		}
 
-		log.Println("Master password accepted. Loading main view.")
 		a.loadMainView()
 	}, a.window)
 

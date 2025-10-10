@@ -20,7 +20,7 @@ type PasswordListView struct {
 	content           *fyne.Container
 	eventBus          *events.EventBus
 	allPasswords      []*entities.Password
-	filteredPasswords []*entities.Password // ← это и есть текущий список
+	filteredPasswords []*entities.Password
 	searchEntry       *widget.Entry
 }
 
