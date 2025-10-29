@@ -25,7 +25,7 @@ This is a small application written in Golang that I created for personal use an
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/valentinzamarin/password-storage.git
 cd password-storage
 
 # Build the application
